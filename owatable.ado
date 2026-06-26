@@ -587,7 +587,6 @@ program define owatable, rclass
         }
 
         local note_row = `nrows'
-        local group_note `"G1 = `group_name1'; G2 = `group_name2'; G3 = `group_name3'"'
         local sample_text "A common complete-case sample was used across all outcomes and the grouping variable. "
         if `"`availablecase'"' != "" {
             local sample_text "Outcome-specific available cases were used; sample sizes may vary across outcomes. "
@@ -600,8 +599,20 @@ program define owatable, rclass
         putdocx table owatbl(`note_row',1), colspan(`ncols') ///
             halign(left) valign(top) border(top, single, black, 1.25pt)
         putdocx table owatbl(`note_row',1) = ("Note. "), italic
+        putdocx table owatbl(`note_row',1) = ("G"), append
+        putdocx table owatbl(`note_row',1) = ("1"), append script(subscript)
+        putdocx table owatbl(`note_row',1) = (`" = `group_name1'; "'), append
+        putdocx table owatbl(`note_row',1) = ("G"), append
+        putdocx table owatbl(`note_row',1) = ("2"), append script(subscript)
+        putdocx table owatbl(`note_row',1) = (`" = `group_name2'; "'), append
+        putdocx table owatbl(`note_row',1) = ("G"), append
+        putdocx table owatbl(`note_row',1) = ("3"), append script(subscript)
         putdocx table owatbl(`note_row',1) = ///
-            (`"`group_note'. `sample_text'Welch one-way ANOVA was used. FDR q-values are Benjamini-Hochberg adjusted Welch omnibus p-values. Games-Howell pairwise comparisons were performed only for FDR-significant omnibus tests. Pairwise columns report absolute Hedges' g_av effect sizes; blank cells indicate nonsignificant Games-Howell comparisons. `df_text'*"'), append
+            (`" = `group_name3'. `sample_text'Welch one-way ANOVA was used. FDR q-values are Benjamini-Hochberg adjusted Welch omnibus p-values. Games-Howell pairwise comparisons were performed only for FDR-significant omnibus tests. Pairwise columns report absolute Hedges' "'), append
+        putdocx table owatbl(`note_row',1) = ("g"), append italic
+        putdocx table owatbl(`note_row',1) = ("av"), append script(subscript)
+        putdocx table owatbl(`note_row',1) = ///
+            (`" effect sizes; blank cells indicate nonsignificant Games-Howell comparisons. `df_text'*"'), append
         putdocx table owatbl(`note_row',1) = ("p"), append italic
         putdocx table owatbl(`note_row',1) = (" < .05. **"), append
         putdocx table owatbl(`note_row',1) = ("p"), append italic
