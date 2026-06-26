@@ -1,6 +1,6 @@
 *! version 1.0.0  26jun2026
 program define owatable, rclass
-    version 16.0
+    version 19.5
 
     syntax varlist(numeric min=1) [if] [in], ///
         BY(varname) SAVing(string) ///
