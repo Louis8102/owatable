@@ -1,0 +1,3 @@
+v 3
+d User-written Stata packages
+p owatable Word table for three-group Welch one-way ANOVA
