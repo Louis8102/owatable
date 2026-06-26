@@ -1,0 +1,16 @@
+v 3
+d owatable: Word table for three-group Welch one-way ANOVA
+d
+d owatable creates a compact Word table for multiple outcomes compared
+d across exactly three groups using Welch one-way ANOVA, Benjamini-Hochberg
+d FDR q-values, Games-Howell pairwise comparisons, and Hedges' g_av.
+d Block headings may be supplied with blockfile() or parsed from variable
+d labels with blockfromlabel.
+d
+d Author: Xuelian Wu
+d Version: 1.0.0, 26jun2026
+d
+f owatable.ado
+f owatable.sthlp
+f owatable_example.do
+f README.md
