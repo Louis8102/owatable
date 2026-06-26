@@ -158,7 +158,7 @@ program define owatable, rclass
             }
         }
 
-        postfile `rawpost' int item_no ///
+        quietly postfile `rawpost' int item_no ///
             str32 variable str32 label_blockcode str244 label_blocklabel str244 rowlabel ///
             double n1 mean1 sd1 n2 mean2 sd2 n3 mean3 sd3 ///
             using `"`rawresults'"', replace
@@ -215,7 +215,7 @@ program define owatable, rclass
             }
             post `rawpost' (`item') (`"`y'"') (`"`label_blockcode'"') (`"`label_blocklabel'"') (`"`rowlab'"') `statvals'
         }
-        postclose `rawpost'
+        quietly postclose `rawpost'
 
         quietly use `"`rawresults'"', clear
         sort item_no
@@ -600,17 +600,17 @@ program define owatable, rclass
             halign(left) valign(top) border(top, single, black, 1.25pt)
         putdocx table owatbl(`note_row',1) = ("Note. "), italic
         putdocx table owatbl(`note_row',1) = ("G"), append
-        putdocx table owatbl(`note_row',1) = ("1"), append script(subscript)
+        putdocx table owatbl(`note_row',1) = ("1"), append script(sub) italic
         putdocx table owatbl(`note_row',1) = (`" = `group_name1'; "'), append
         putdocx table owatbl(`note_row',1) = ("G"), append
-        putdocx table owatbl(`note_row',1) = ("2"), append script(subscript)
+        putdocx table owatbl(`note_row',1) = ("2"), append script(sub) italic
         putdocx table owatbl(`note_row',1) = (`" = `group_name2'; "'), append
         putdocx table owatbl(`note_row',1) = ("G"), append
-        putdocx table owatbl(`note_row',1) = ("3"), append script(subscript)
+        putdocx table owatbl(`note_row',1) = ("3"), append script(sub) italic
         putdocx table owatbl(`note_row',1) = ///
             (`" = `group_name3'. `sample_text'Welch one-way ANOVA was used. FDR q-values are Benjamini-Hochberg adjusted Welch omnibus p-values. Games-Howell pairwise comparisons were performed only for FDR-significant omnibus tests. Pairwise columns report absolute Hedges' "'), append
         putdocx table owatbl(`note_row',1) = ("g"), append italic
-        putdocx table owatbl(`note_row',1) = ("av"), append script(subscript)
+        putdocx table owatbl(`note_row',1) = ("av"), append script(sub)
         putdocx table owatbl(`note_row',1) = ///
             (`" effect sizes; blank cells indicate nonsignificant Games-Howell comparisons. `df_text'*"'), append
         putdocx table owatbl(`note_row',1) = ("p"), append italic
