@@ -72,5 +72,5 @@ Install from a local directory:
 net install owatable, from("path/to/owatable") replace
 ```
 
-Author: Xuelian Wu  
+Author: Hao Ma  
 Version: 1.0.0, 26 June 2026

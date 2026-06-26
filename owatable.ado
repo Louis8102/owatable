@@ -1,6 +1,6 @@
 *! version 1.0.0  26jun2026
 program define owatable, rclass
-    version 16.0
+    version 19.5
 
     syntax varlist(numeric min=1) [if] [in], ///
         BY(varname) SAVing(string) ///
@@ -110,8 +110,8 @@ program define owatable, rclass
                 exit 109
             }
             keep varname blockid blocklabel
-            replace varname = strtrim(varname)
-            replace blocklabel = strtrim(blocklabel)
+            quietly replace varname = strtrim(varname)
+            quietly replace blocklabel = strtrim(blocklabel)
             quietly count if missing(varname) | missing(blockid) | missing(blocklabel)
             if r(N) > 0 {
                 di as err "blockfile() contains missing varname, blockid, or blocklabel"
@@ -125,9 +125,9 @@ program define owatable, rclass
                 restore
                 exit 459
             }
-            drop __dup
+            quietly drop __dup
             rename varname variable
-            save `"`blockmapclean'"', replace
+            quietly save `"`blockmapclean'"', replace
         restore
     }
 
@@ -158,7 +158,7 @@ program define owatable, rclass
             }
         }
 
-        postfile `rawpost' int item_no ///
+        quietly postfile `rawpost' int item_no ///
             str32 variable str32 label_blockcode str244 label_blocklabel str244 rowlabel ///
             double n1 mean1 sd1 n2 mean2 sd2 n3 mean3 sd3 ///
             using `"`rawresults'"', replace
@@ -215,14 +215,14 @@ program define owatable, rclass
             }
             post `rawpost' (`item') (`"`y'"') (`"`label_blockcode'"') (`"`label_blocklabel'"') (`"`rowlab'"') `statvals'
         }
-        postclose `rawpost'
+        quietly postclose `rawpost'
 
-        use `"`rawresults'"', clear
+        quietly use `"`rawresults'"', clear
         sort item_no
 
         if `"`blockfile'"' != "" {
-            drop label_blockcode label_blocklabel
-            merge 1:1 variable using `"`blockmapclean'"', keep(master match)
+            quietly drop label_blockcode label_blocklabel
+            quietly merge 1:1 variable using `"`blockmapclean'"', keep(master match)
             quietly count if _merge == 1
             if r(N) > 0 {
                 levelsof variable if _merge == 1, local(unmapped_vars) clean
@@ -230,19 +230,19 @@ program define owatable, rclass
                 restore
                 exit 459
             }
-            drop _merge
-            generate str32 blockcode = string(blockid)
+            quietly drop _merge
+            quietly generate str32 blockcode = string(blockid)
         }
         else if `"`blockfromlabel'"' != "" | `"`blockfromchar'"' != "" {
-            generate str32 blockcode = label_blockcode
-            generate str244 blocklabel = label_blocklabel
+            quietly generate str32 blockcode = label_blockcode
+            quietly generate str244 blocklabel = label_blocklabel
             quietly count if missing(blockcode) | missing(blocklabel)
             if r(N) > 0 {
                 di as err "could not parse block information for all variables"
                 restore
                 exit 198
             }
-            generate double blockid = .
+            quietly generate double blockid = .
             local current_block ""
             local next_block = 0
             sort item_no
@@ -252,97 +252,97 @@ program define owatable, rclass
                     local ++next_block
                     local current_block `"`this_block'"'
                 }
-                replace blockid = `next_block' in `i'
+                quietly replace blockid = `next_block' in `i'
             }
-            drop label_blockcode label_blocklabel
+            quietly drop label_blockcode label_blocklabel
         }
         else {
-            generate double blockid = 1
-            generate str32 blockcode = ""
-            generate str244 blocklabel = ""
-            drop label_blockcode label_blocklabel
+            quietly generate double blockid = 1
+            quietly generate str32 blockcode = ""
+            quietly generate str244 blocklabel = ""
+            quietly drop label_blockcode label_blocklabel
         }
 
-        generate byte analyzable = ///
+        quietly generate byte analyzable = ///
             n1 >= `mincell' & n2 >= `mincell' & n3 >= `mincell' & ///
             sd1 > 0 & sd2 > 0 & sd3 > 0
 
-        generate double variance1 = sd1^2
-        generate double variance2 = sd2^2
-        generate double variance3 = sd3^2
-        generate double weight1 = n1 / variance1 if analyzable
-        generate double weight2 = n2 / variance2 if analyzable
-        generate double weight3 = n3 / variance3 if analyzable
-        generate double sum_w = weight1 + weight2 + weight3 if analyzable
-        generate double mean_w = ///
+        quietly generate double variance1 = sd1^2
+        quietly generate double variance2 = sd2^2
+        quietly generate double variance3 = sd3^2
+        quietly generate double weight1 = n1 / variance1 if analyzable
+        quietly generate double weight2 = n2 / variance2 if analyzable
+        quietly generate double weight3 = n3 / variance3 if analyzable
+        quietly generate double sum_w = weight1 + weight2 + weight3 if analyzable
+        quietly generate double mean_w = ///
             (weight1*mean1 + weight2*mean2 + weight3*mean3) / sum_w if analyzable
-        generate double welch_A = ///
+        quietly generate double welch_A = ///
             ((1-weight1/sum_w)^2/(n1-1)) + ///
             ((1-weight2/sum_w)^2/(n2-1)) + ///
             ((1-weight3/sum_w)^2/(n3-1)) if analyzable
-        generate double F = ///
+        quietly generate double F = ///
             ((weight1*(mean1-mean_w)^2 + ///
               weight2*(mean2-mean_w)^2 + ///
               weight3*(mean3-mean_w)^2) / 2) / ///
             (1 + (2*(3-2)/(3^2-1))*welch_A) if analyzable
-        generate double df1 = 2 if analyzable
-        generate double df2 = (3^2 - 1) / (3 * welch_A) if analyzable
-        generate double p = Ftail(df1, df2, F) if analyzable
+        quietly generate double df1 = 2 if analyzable
+        quietly generate double df2 = (3^2 - 1) / (3 * welch_A) if analyzable
+        quietly generate double p = Ftail(df1, df2, F) if analyzable
 
-        generate long result_id = _n
-        generate double q = .
-        generate long fdr_rank = .
-        generate long fdr_m = .
+        quietly generate long result_id = _n
+        quietly generate double q = .
+        quietly generate long fdr_rank = .
+        quietly generate long fdr_m = .
 
-        save `"`prefdr'"', replace
+        quietly save `"`prefdr'"', replace
         keep result_id p
-        keep if !missing(p)
+        quietly keep if !missing(p)
         sort p result_id
-        generate long fdr_rank = _n
+        quietly generate long fdr_rank = _n
         quietly count
-        generate long fdr_m = r(N)
-        generate double q = p * fdr_m / fdr_rank
+        quietly generate long fdr_m = r(N)
+        quietly generate double q = p * fdr_m / fdr_rank
         gsort -fdr_rank
-        replace q = min(q, q[_n-1]) if _n > 1
-        replace q = min(q, 1)
+        quietly replace q = min(q, q[_n-1]) if _n > 1
+        quietly replace q = min(q, 1)
         keep result_id q fdr_rank fdr_m
-        save `"`fdrvalues'"', replace
-        use `"`prefdr'"', clear
-        drop q fdr_rank fdr_m
-        merge 1:1 result_id using `"`fdrvalues'"', nogen
+        quietly save `"`fdrvalues'"', replace
+        quietly use `"`prefdr'"', clear
+        quietly drop q fdr_rank fdr_m
+        quietly merge 1:1 result_id using `"`fdrvalues'"', nogen
 
-        generate byte omnibus_sig = q < `alpha' if !missing(q)
+        quietly generate byte omnibus_sig = q < `alpha' if !missing(q)
 
         foreach pp in 12 13 23 {
             local a = substr("`pp'", 1, 1)
             local b = substr("`pp'", 2, 1)
-            generate double gh_df`pp' = ///
+            quietly generate double gh_df`pp' = ///
                 (variance`a'/n`a' + variance`b'/n`b')^2 / ///
                 ((variance`a'/n`a')^2/(n`a'-1) + ///
                  (variance`b'/n`b')^2/(n`b'-1)) if omnibus_sig
-            generate double gh_q`pp' = abs(mean`a' - mean`b') / ///
+            quietly generate double gh_q`pp' = abs(mean`a' - mean`b') / ///
                 sqrt(.5 * (variance`a'/n`a' + variance`b'/n`b')) if omnibus_sig
-            generate double gh_p`pp' = max(0, min(1, ///
+            quietly generate double gh_p`pp' = max(0, min(1, ///
                 1 - tukeyprob(3, gh_df`pp', gh_q`pp'))) if omnibus_sig
 
-            generate double sd_av`pp' = sqrt((variance`a' + variance`b') / 2) ///
+            quietly generate double sd_av`pp' = sqrt((variance`a' + variance`b') / 2) ///
                 if omnibus_sig
-            generate double es_df`pp' = n`a' + n`b' - 2 if omnibus_sig
-            generate double J`pp' = 1 - 3/(4 * es_df`pp' - 1) if omnibus_sig
-            generate double d_av`pp' = (mean`a' - mean`b') / sd_av`pp' ///
+            quietly generate double es_df`pp' = n`a' + n`b' - 2 if omnibus_sig
+            quietly generate double J`pp' = 1 - 3/(4 * es_df`pp' - 1) if omnibus_sig
+            quietly generate double d_av`pp' = (mean`a' - mean`b') / sd_av`pp' ///
                 if omnibus_sig
-            generate double gav`pp' = J`pp' * d_av`pp' if omnibus_sig
+            quietly generate double gav`pp' = J`pp' * d_av`pp' if omnibus_sig
         }
 
-        generate byte pairwise_sig = ///
+        quietly generate byte pairwise_sig = ///
             gh_p12 < `alpha' | gh_p13 < `alpha' | gh_p23 < `alpha'
-        generate byte displayed = omnibus_sig & pairwise_sig
+        quietly generate byte displayed = omnibus_sig & pairwise_sig
 
         order item_no variable rowlabel n1 mean1 sd1 n2 mean2 sd2 n3 mean3 sd3 ///
             F df1 df2 p q gh_p12 gav12 gh_p13 gav13 gh_p23 gav23
-        save `"`fullresults'"', replace
+        quietly save `"`fullresults'"', replace
         if `"`results'"' != "" {
-            save `"`results'"', `replace'
+            quietly save `"`results'"', `replace'
         }
 
         if `"`show'"' == "significant" keep if displayed
@@ -355,51 +355,51 @@ program define owatable, rclass
             restore
             exit 2000
         }
-        save `"`displayresults'"', replace
+        quietly save `"`displayresults'"', replace
 
         local alpha01 = .01
         local alpha001 = .001
 
-        use `"`displayresults'"', clear
+        quietly use `"`displayresults'"', clear
         sort item_no
 
         forvalues j = 1/3 {
-            generate str12 mean_txt`j' = ///
+            quietly generate str12 mean_txt`j' = ///
                 cond(missing(mean`j'), ".", strtrim(string(mean`j', "%9.2f")))
-            generate str14 sd_txt`j' = ///
+            quietly generate str14 sd_txt`j' = ///
                 cond(missing(sd`j'), "(.)", "(" + strtrim(string(sd`j', "%9.2f")) + ")")
         }
-        generate str18 F_txt = cond(missing(F), ".", strtrim(string(F, "%9.2f")))
+        quietly generate str18 F_txt = cond(missing(F), ".", strtrim(string(F, "%9.2f")))
         if `"`showdf'"' != "" {
-            replace F_txt = strtrim(string(F, "%9.2f")) + " (" + ///
+            quietly replace F_txt = strtrim(string(F, "%9.2f")) + " (" + ///
                 strtrim(string(df1, "%9.0f")) + ", " + ///
                 strtrim(string(df2, "%9.1f")) + ")" if !missing(F)
         }
-        generate str12 p_txt = cond(missing(p), ".", ///
+        quietly generate str12 p_txt = cond(missing(p), ".", ///
             cond(p < `alpha001', "<.001", ///
             subinstr(strtrim(string(p, "%9.3f")), "0.", ".", 1)))
-        generate str12 q_txt = cond(missing(q), ".", ///
+        quietly generate str12 q_txt = cond(missing(q), ".", ///
             cond(q < `alpha001', "<.001", ///
             subinstr(strtrim(string(q, "%9.3f")), "0.", ".", 1)))
         foreach pp in 12 13 23 {
-            generate str20 gav_txt`pp' = ""
-            replace gav_txt`pp' = strtrim(string(abs(gav`pp'), "%9.2f")) ///
+            quietly generate str20 gav_txt`pp' = ""
+            quietly replace gav_txt`pp' = strtrim(string(abs(gav`pp'), "%9.2f")) ///
                 if gh_p`pp' < `alpha'
-            replace gav_txt`pp' = gav_txt`pp' + "***" ///
+            quietly replace gav_txt`pp' = gav_txt`pp' + "***" ///
                 if gh_p`pp' < `alpha001'
-            replace gav_txt`pp' = gav_txt`pp' + "**" ///
+            quietly replace gav_txt`pp' = gav_txt`pp' + "**" ///
                 if gh_p`pp' < `alpha01' & gh_p`pp' >= `alpha001'
-            replace gav_txt`pp' = gav_txt`pp' + "*" ///
+            quietly replace gav_txt`pp' = gav_txt`pp' + "*" ///
                 if gh_p`pp' < `alpha' & gh_p`pp' >= `alpha01'
         }
-        save `"`tabledata'"', replace
+        quietly save `"`tabledata'"', replace
 
-        generate int label_chars = ustrlen(rowlabel)
-        generate int block_chars = ustrlen(blocklabel)
-        generate int display_chars = max(label_chars, block_chars)
+        quietly generate int label_chars = ustrlen(rowlabel)
+        quietly generate int block_chars = ustrlen(blocklabel)
+        quietly generate int display_chars = max(label_chars, block_chars)
         quietly summarize display_chars
         local max_label_chars = r(max)
-        drop label_chars block_chars display_chars
+        quietly drop label_chars block_chars display_chars
 
         quietly levelsof blockid if blocklabel != "", local(blocks_shown)
         local nblocks_shown : word count `blocks_shown'
@@ -587,7 +587,6 @@ program define owatable, rclass
         }
 
         local note_row = `nrows'
-        local group_note `"G1 = `group_name1'; G2 = `group_name2'; G3 = `group_name3'"'
         local sample_text "A common complete-case sample was used across all outcomes and the grouping variable. "
         if `"`availablecase'"' != "" {
             local sample_text "Outcome-specific available cases were used; sample sizes may vary across outcomes. "
@@ -600,8 +599,20 @@ program define owatable, rclass
         putdocx table owatbl(`note_row',1), colspan(`ncols') ///
             halign(left) valign(top) border(top, single, black, 1.25pt)
         putdocx table owatbl(`note_row',1) = ("Note. "), italic
+        putdocx table owatbl(`note_row',1) = ("G"), append
+        putdocx table owatbl(`note_row',1) = ("1"), append script(sub) italic
+        putdocx table owatbl(`note_row',1) = (`" = `group_name1'; "'), append
+        putdocx table owatbl(`note_row',1) = ("G"), append
+        putdocx table owatbl(`note_row',1) = ("2"), append script(sub) italic
+        putdocx table owatbl(`note_row',1) = (`" = `group_name2'; "'), append
+        putdocx table owatbl(`note_row',1) = ("G"), append
+        putdocx table owatbl(`note_row',1) = ("3"), append script(sub) italic
         putdocx table owatbl(`note_row',1) = ///
-            (`"`group_note'. `sample_text'Welch one-way ANOVA was used. FDR q-values are Benjamini-Hochberg adjusted Welch omnibus p-values. Games-Howell pairwise comparisons were performed only for FDR-significant omnibus tests. Pairwise columns report absolute Hedges' g_av effect sizes; blank cells indicate nonsignificant Games-Howell comparisons. `df_text'*"'), append
+            (`" = `group_name3'. `sample_text'Welch one-way ANOVA was used. FDR q-values are Benjamini-Hochberg adjusted Welch omnibus p-values. Games-Howell pairwise comparisons were performed only for FDR-significant omnibus tests. Pairwise columns report absolute Hedges' "'), append
+        putdocx table owatbl(`note_row',1) = ("g"), append italic
+        putdocx table owatbl(`note_row',1) = ("av"), append script(sub)
+        putdocx table owatbl(`note_row',1) = ///
+            (`" effect sizes; blank cells indicate nonsignificant Games-Howell comparisons. `df_text'*"'), append
         putdocx table owatbl(`note_row',1) = ("p"), append italic
         putdocx table owatbl(`note_row',1) = (" < .05. **"), append
         putdocx table owatbl(`note_row',1) = ("p"), append italic
@@ -662,10 +673,18 @@ program define owatable, rclass
     else {
         di as txt "Available-case mode was used; sample sizes may vary across outcomes."
     }
-    di as txt "Word table saved to:"
-    di as result `"  `saving'"'
+    mata: st_local("saving_abs", pathresolve(pwd(), st_local("saving")))
+    local saving_show `"`saving'"'
+    if strpos(`"`saving_show'"', "/") | strpos(`"`saving_show'"', "\") {
+        mata: st_local("saving_show", pathbasename(st_local("saving_show")))
+    }
+    di as txt "Word table saved to: " as result `"{browse "`saving_abs'":`saving_show'}"'
     if `"`results'"' != "" {
-        di as txt "Results data saved to:"
-        di as result `"  `results'"'
+        mata: st_local("results_abs", pathresolve(pwd(), st_local("results")))
+        local results_show `"`results'"'
+        if strpos(`"`results_show'"', "/") | strpos(`"`results_show'"', "\") {
+            mata: st_local("results_show", pathbasename(st_local("results_show")))
+        }
+        di as txt "Results data saved to: " as result `"{browse "`results_abs'":`results_show'}"'
     }
 end
