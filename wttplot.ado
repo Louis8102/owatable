@@ -245,7 +245,7 @@ program define wttplot, rclass
                 local char_rowlab : char `y'[owatable_label]
                 local label_blockcode = strtrim(`"`label_blockcode'"')
                 local label_blocklabel = strtrim(`"`label_blocklabel'"')
-                if `"`char_rowlab'"' != "" local rowlab `"`char_rowlab'"'
+                if `"`ylab'"' == "" & `"`char_rowlab'"' != "" local rowlab `"`char_rowlab'"'
                 if `"`label_blockcode'"' == "" | `"`label_blocklabel'"' == "" {
                     di as err "blockfromchar requires variable characteristics:"
                     di as err `"char `y'[owatable_blockid] "B01""'

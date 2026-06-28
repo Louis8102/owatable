@@ -72,4 +72,11 @@ wttplot item1-item50, by(gender) blockfromchar ///
 
 `combine(4) layout(vertical)` produces a compact two-column screening figure. `mapfile()` saves an Excel file linking Item numbers to variable names, block labels, and full outcome labels. The mapping file uses Times New Roman, 12 pt.
 
+Mapping-file labels:
+
+- `wttplot` uses the Stata variable label as the item label whenever a variable label exists.
+- If a variable has no variable label, `wttplot` falls back to the variable characteristic `owatable_label`, if available.
+- If variables are named `item1`, `item2`, ..., the mapping file displays them as `item01`, `item02`, ..., so one-digit and two-digit item names align cleanly.
+- The mapping file has four columns: `No.`, `Item`, `Item label`, and `Block`; the header row is bold and centered, with dynamic column widths.
+
 Author: Hao Ma

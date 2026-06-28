@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 1.0.0  27jun2026}{...}
+{* *! version 1.0.0  28jun2026}{...}
 {vieweralsosee "wtttable" "help wtttable"}{...}
 {vieweralsosee "owablock" "help owablock"}{...}
 
@@ -32,7 +32,7 @@
 {synopt:{opt combine(#)}}place # blocks in each exported figure; default is {cmd:combine(1)}{p_end}
 {synopt:{opt layout(auto|horizontal|vertical)}}layout for multi-block figures; default is {cmd:layout(auto)}{p_end}
 {synopt:{opt labelmode(full|item|varname)}}labels used on the graph; default is {cmd:full}, or {cmd:item} for combined vertical figures{p_end}
-{synopt:{opt mapfile(filename.xlsx)}}save an Excel item-label mapping file; cells use Times New Roman 12 pt{p_end}
+{synopt:{opt mapfile(filename.xlsx)}}save an Excel item-label mapping file; cells use Times New Roman 12 pt, with bold centered headers{p_end}
 {synopt:{opt columns(#)}}number of columns when {cmd:combine(#)} is greater than 1; default is automatic{p_end}
 {synopt:{opt formats(pdf png)}}graph formats to export; default is both {cmd:pdf png}{p_end}
 {synopt:{opt orientation(auto|landscape|portrait)}}graph aspect ratio; default is {cmd:orientation(auto)}{p_end}
@@ -89,8 +89,10 @@ intervals.  The default is {cmd:alpha(.05)}.
 {phang}
 {opt blockfromchar} reads block metadata written by {cmd:owablock}.  Each
 outcome variable must contain characteristics {cmd:owatable_blockid} and
-{cmd:owatable_blocklabel}.  If {cmd:owatable_label} is present, it is used as
-the row label.
+{cmd:owatable_blocklabel}.  For item labels, {cmd:wttplot} first uses the
+Stata variable label.  If the variable label is empty, {cmd:wttplot} then
+uses characteristic {cmd:owatable_label}, if present.  This avoids replacing
+valid variable labels with stale or incorrectly written characteristics.
 
 {phang}
 {opt blockfromlabel} extracts block metadata from variable labels formatted as
@@ -137,14 +139,18 @@ when {cmd:combine(#)} is greater than 1.
 
 {phang}
 {opt labelmode(full)} uses the variable label or display label on the graph.
-{opt labelmode(item)} displays {cmd:Item 1}, {cmd:Item 2}, and so on.  This is
+{opt labelmode(item)} displays {cmd:Item 01}, {cmd:Item 02}, and so on.  This is
 recommended for compact screening figures.  {opt labelmode(varname)} displays
 Stata variable names.
 
 {phang}
 {opt mapfile(filename.xlsx)} saves an Excel mapping file linking graph item
-numbers to variable names, block labels, and full outcome labels.  The mapping
-file is formatted in Times New Roman, 12 pt, with a bold header row.
+numbers to variable names, block labels, and full outcome labels.  If variables
+are named {cmd:item1}, {cmd:item2}, ..., the mapping file displays them as
+{cmd:item01}, {cmd:item02}, ..., so one-digit and two-digit item names align.
+The mapping file has four columns: {cmd:No.}, {cmd:Item}, {cmd:Item label}, and
+{cmd:Block}.  It is formatted in Times New Roman, 12 pt, with bold centered
+headers and dynamic column widths.
 
 {phang}
 {opt columns(#)} sets the number of columns when {cmd:combine(#)} is greater
