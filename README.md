@@ -1,76 +1,75 @@
-# owatable
+# wttplot
 
-`owatable` creates a compact Word table for multiple outcomes compared across
-exactly three groups.
+`wttplot` creates signed Hedges' g_av effect-size plots for multiple two independent-group Welch tests.
 
-Version 1.0.0 is intentionally narrow:
+It is intended for research briefs, appendices, and preliminary group-difference reporting when many outcomes are analyzed at once.
 
-- exactly three groups in `by()`;
-- standard Stata numeric `varlist`;
-- common complete-case sample by default;
-- optional `availablecase`;
-- Welch one-way ANOVA for each outcome;
-- Benjamini-Hochberg FDR q-values across omnibus tests;
-- Games-Howell pairwise comparisons only after FDR-significant omnibus tests;
-- absolute Hedges' g_av in the Word table;
-- signed Hedges' g_av in the optional results dataset.
-
-Rows use Stata variable labels when available; if a variable has no label,
-`owatable` falls back to the variable name.
-
-For multi-block instruments, the recommended no-mapping-file workflow is
-`blockfromchar`. Keep the ordinary variable label as the item label and add
-block metadata with variable characteristics:
+Install from GitHub:
 
 ```stata
-label variable q1 "Gender"
-char q1[owatable_blockid] "B01"
-char q1[owatable_blocklabel] "Student Characteristics"
-
-label variable q2 "Age"
-char q2[owatable_blockid] "B01"
-char q2[owatable_blocklabel] "Student Characteristics"
-
-label variable q3 "Chronic Absence Rate"
-char q3[owatable_blockid] "B02"
-char q3[owatable_blocklabel] "Attendance"
+net install wttplot, from("https://raw.githubusercontent.com/Louis8102/wttplot/main/") replace
 ```
 
-Then run:
+Example using block information embedded in variable labels:
 
 ```stata
-owatable q1-q3, by(group3) blockfromchar saving(table1.docx) replace
+sysuse auto, clear
+
+label var price  "[B01 | Cost] Price"
+label var mpg    "[B02 | Vehicle Performance] Mileage (mpg)"
+label var weight "[B02 | Vehicle Performance] Weight (lbs.)"
+label var length "[B02 | Vehicle Performance] Length (in.)"
+
+wttplot price mpg weight length, by(foreign) blockfromlabel ///
+    graphdir(figures) show(all) replace
 ```
 
-`owatable` also supports `blockfile()` for users who prefer a separate mapping
-dataset, and `blockfromlabel` for short labels formatted as
-`[B01 | Block Label] Display Label`. With any block method, block labels are
-inserted as subheadings, and the first-column width is computed from both the
-outcome labels and the block labels.
-
-Important: Stata variable labels are limited to 80 characters. If the block
-prefix plus the display label would exceed 80 characters, Stata truncates the
-label before `owatable` reads it. For long item labels, prefer `blockfromchar`
-or `blockfile()`.
-
-Basic use:
+Example using the included simulated survey dataset:
 
 ```stata
-owatable y1-y30 y35-y105, by(group3) saving(table1.docx) replace
+use example.dta, clear
+
+wttplot item1-item60, by(gender) blockfromchar ///
+    graphdir(figures_gender_vertical) show(all) ///
+    combine(4) layout(vertical) labelmode(item) ///
+    mapfile(gender_item_mapping.xlsx) replace
+
+wttplot item1-item60, by(company) blockfromchar ///
+    graphdir(figures_company_vertical) show(all) ///
+    combine(4) layout(vertical) labelmode(item) ///
+    mapfile(company_item_mapping.xlsx) replace
 ```
 
-With a saved analytic dataset:
+`example.dta` is a simulated 60-item organizational psychology survey with six 10-item blocks. It includes two grouping variables: `gender` (Female/Male) and `company` (Subsidiary/Headquarters). Several items were simulated to show clear group differences for demonstration.
+
+Optional font-size tuning:
 
 ```stata
-owatable y1-y30 y35-y105, by(group3) ///
-    saving(table1.docx) results(owatable_results.dta) replace
+wttplot price mpg weight length, by(foreign) blockfromlabel ///
+    graphdir(figures) show(all) ///
+    titlesize(medsmall) blocksize(medsmall) labelsize(small) ///
+    xlabsize(small) xtitlesize(small) notesize(vsmall) replace
 ```
 
-Install from a local directory:
+Optional combined figures:
 
 ```stata
-net install owatable, from("path/to/owatable") replace
+wttplot price mpg weight length, by(foreign) blockfromlabel ///
+    graphdir(figures_h) show(all) combine(2) layout(horizontal) replace
+
+wttplot price mpg weight length, by(foreign) blockfromlabel ///
+    graphdir(figures_v) show(all) combine(2) layout(vertical) replace
 ```
 
-Author: Hao Ma  
-Version: 1.0.0, 26 June 2026
+Compact screening figure with item-number labels and an Excel mapping file:
+
+```stata
+wttplot item1-item50, by(gender) blockfromchar ///
+    graphdir(figures_vertical) show(all) ///
+    combine(4) layout(vertical) labelmode(item) ///
+    mapfile(item_mapping.xlsx) replace
+```
+
+`combine(4) layout(vertical)` produces a compact two-column screening figure. `mapfile()` saves an Excel file linking Item numbers to variable names, block labels, and full outcome labels. The mapping file uses Times New Roman, 12 pt.
+
+Author: Hao Ma

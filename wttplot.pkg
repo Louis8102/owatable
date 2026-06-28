@@ -1,0 +1,18 @@
+v 1.0.0
+d wttplot: effect-size plots for Welch two-group tests
+d
+d wttplot creates signed Hedges' g_av effect-size plots for multiple
+d two independent-group Welch tests, with Benjamini-Hochberg FDR-adjusted
+d p-values used to select statistically significant outcomes by default.
+d
+d The command can export vector PDF figures and high-resolution PNG figures.
+d It supports block/subscale headings from variable labels, variable
+d characteristics, or a block map file.
+d
+d Author: Hao Ma
+d
+f wttplot.ado
+f wttplot.sthlp
+f wttplot_example.do
+f README.md
+f LICENSE
